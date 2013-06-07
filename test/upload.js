@@ -4,11 +4,7 @@ var yaml = require('libyaml');
 var hashFile = require('../tasks/lib/common').hashFile;
 var s3 = require('../tasks/lib/s3').init(grunt);
 
-var _ = grunt.util._;
 var async = grunt.util.async;
-
-var s3Config = grunt.config("s3"),
-    config = _.extend({}, s3Config.options, s3Config.test.options);
 
 module.exports = {
   testUpload : function (test) {
@@ -19,7 +15,7 @@ module.exports = {
         var src = __dirname + '/files/a.txt';
         var dest = __dirname + '/../s3/127/a.txt/.fakes3_metadataFFF/content';
 
-        s3.upload(src, 'a.txt', config)
+        s3.upload(src, 'a.txt')
           .done(function () {
             test.ok(hashFile(src) === hashFile(dest), 'File uploaded successfully.');
           })
@@ -49,9 +45,7 @@ module.exports = {
         var src = __dirname + '/files/b.txt';
         var dest = __dirname + '/../s3/127/b.txt/.fakes3_metadataFFF/metadata';
 
-        var headerConfig = _.defaults({}, config, { headers : {'Content-Type' : '<3'} });
-
-        s3.upload(src, 'b.txt', headerConfig)
+        s3.upload(src, 'b.txt', { headers : {'Content-Type' : '<3'} })
           .always(function () {
             var meta = yaml.parse(grunt.file.read(dest))
             test.ok(meta[0][':content_type'] === new Buffer('<3').toString('base64'), 'Headers are preserved.');
@@ -69,9 +63,7 @@ module.exports = {
     var src = __dirname + '/files/c.txt';
     var dest = __dirname + '/../s3/127/c.txt/.fakes3_metadataFFF/content';
 
-    var debugConfig = _.defaults({}, config, { debug: true });
-
-    s3.upload(src, "c.txt", debugConfig)
+    s3.upload(src, "c.txt", { debug: true })
       .always(function () {
         test.throws(function () {
           grunt.file.read(dest);
